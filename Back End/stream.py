@@ -5,6 +5,7 @@ from tweepy import Stream
 import json
 import time
 import os
+import copy
 
 
 class Statistics:
@@ -94,5 +95,5 @@ if __name__=='__main__':
 	while True:
 		time.sleep(10)
 		print("exporting")
-		tweetData.export()
+		copy.deepcopy(tweetData).export()
 		print('total {} entries'.format(len(tweetData.stored_data[0])+len(tweetData.stored_data[1])))
