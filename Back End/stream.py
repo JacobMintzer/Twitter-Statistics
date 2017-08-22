@@ -95,4 +95,4 @@ if __name__=='__main__':
 		time.sleep(10)
 		print("exporting")
 		tweetData.export()
-		print('done')
+		print('total {} entries'.format(len(tweetData.stored_data[0])+len(tweetData.stored_data[1])))
