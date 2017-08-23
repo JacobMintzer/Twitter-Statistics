@@ -6,6 +6,8 @@ import json
 import time
 import os
 import copy
+import threading
+import datetime
 
 
 class Statistics:
@@ -13,31 +15,52 @@ class Statistics:
 	def __init__(self, tags):
 		self.stored_data = []
 		self.labels = []
+		self.lock=threading.Lock()
+		self.startTime = time.time()
+		self.totalEntries=0
 		for tag in tags:
 			self.stored_data.append({})
 			self.labels.append(tag)
 
 
 	def add(self,data):
-		found=False
-		for (label,page) in zip(self.labels,self.stored_data):
-			for tag in label:
-				if tag in data["text"]:
-					found=True
-			if found:
-				if data["user"]["id_str"] in page.keys():
-					page[data["user"]["id_str"]]+=1
-					found=False
-				else:
-					page[data["user"]["id_str"]]=1
-					found=False
+		try:
+			found=False
+			self.lock.acquire()
+			for (label,page) in zip(self.labels,self.stored_data):
+				for tag in label:
+					if tag in data["text"]:
+						found=True
+				if found:
+					if data["user"]["id_str"] in page.keys():
+						page[data["user"]["id_str"]]+=1
+						found=False
+					else:
+						page[data["user"]["id_str"]]=1
+						found=False
+			self.lock.release()
 
+		except KeyError:
+			fileDir=os.path.dirname(os.path.realpath('__file__'))
+			with open(os.path.join(fileDir,'data/errlog.txt'),'a+') as errlog:
+				errlog.write('exception occured at {0} with tweet \n{1}\n\n'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),data))
+			self.lock.release()
 
 
 	def export(self):
+		self.totalEntries=0
 		for label,storedData in zip(self.labels,self.stored_data):
-			with open(fileCheck(label[0]),'w') as file:
+			self.totalEntries+=len(storedData)
+			with open(fileCheck(label[0]),'w+') as file:
 				json.dump(storedData,file)
+
+
+		fileDir=os.path.dirname(os.path.realpath('__file__'))
+
+		with open(os.path.join(fileDir,'data/info.txt'),'w+') as infoFile:
+			infoFile.write('Starting time:{0}\nTotal {1} entries\nLast edited at {2}\n'.format(datetime.datetime.fromtimestamp(self.startTime).strftime('%Y-%m-%d %H:%M:%S'),self.totalEntries,datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+
+
 
 
 
@@ -93,7 +116,9 @@ if __name__=='__main__':
 	myStream.filter(track=megatag, async=True)
 	print (megatag)
 	while True:
-		time.sleep(10)
+		time.sleep(120)
 		print("exporting")
-		copy.deepcopy(tweetData).export()
-		print('total {} entries'.format(len(tweetData.stored_data[0])+len(tweetData.stored_data[1])))
+		tweetData.lock.acquire()
+		tweetData.export()
+		tweetData.lock.release()
+		print('total {} entries'.format(tweetData.totalEntries))
