@@ -8,16 +8,19 @@ import os
 import copy
 import threading
 import datetime
+import plotly.plotly as py
+import plotly.graph_objs as go
+
 
 
 class Statistics:
 
 	def __init__(self, tags):
-		self.stored_data = []
-		self.labels = []
+		self.stored_data = [] # Array of dictionaries, key is userID, value is num tweets
+		self.labels = [] # Referenced name of all topics, used for file names
 		self.lock=threading.Lock()
 		self.startTime = time.time()
-		self.totalEntries=0
+		self.totalEntries=0	
 		for tag in tags:
 			self.stored_data.append({})
 			self.labels.append(tag)
@@ -90,6 +93,18 @@ class StdOutListener(StreamListener):
 # 		statistics.append({})
 # 	while True:
 
+def analyze():
+	while True:
+
+		sleep(21600)
+		for label,storedData in zip(tweetData.labels,tweetData.stored_data):
+			totalTweets=0
+			popularityIndex=0.0
+			totalTweeters=0
+			for user in storedData:
+				totalTweeters+=1
+				totalTweets+=storedData[user]
+				popularityIndex+=(storedData[user]**.5)
 
 
 def fileCheck(fileName):
@@ -113,7 +128,10 @@ if __name__=='__main__':
 	tweetData=Statistics(queryData["tags"])
 	myStreamListener = StdOutListener()
 	myStream = Stream(auth, myStreamListener)
-	myStream.filter(track=megatag, async=True)
+	try:
+		myStream.filter(track=megatag, async=True)
+	except AttributeError:
+		System.exit("attribute error at {}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
 	print (megatag)
 	while True:
 		time.sleep(120)
