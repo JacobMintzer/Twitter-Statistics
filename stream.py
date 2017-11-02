@@ -1,7 +1,8 @@
 __author__ = 'jrmintz3@gmail.com'
-from tweepy.streaming import StreamListener
+import tweepy
 from tweepy import OAuthHandler
 from tweepy import Stream
+from tweepy.streaming import StreamListener
 import json
 import time
 import os
@@ -9,7 +10,6 @@ import copy
 import threading
 import _thread
 import datetime
-import tweepy
 import plotly.plotly as py
 import plotly.graph_objs as go
 
@@ -99,6 +99,17 @@ def analyze(auth, num):
 	print("starting analysis\n")
 	while True:
 		try:
+			while(True):
+				curTime=time.localtime()
+				if(curTime.tm_hour==0||curTime.tm_hour==6||curTime.tm_hour==12||curTime.tm_hour==18):
+					if(curTime.tm_min>5):
+						time.sleep(19000)
+					
+					else:
+						break
+
+				else:
+					time.sleep(290)
 			print ("pre-lock\n")
 			tweetData.lock.acquire()
 			totalTweets=[]
@@ -129,8 +140,8 @@ def analyze(auth, num):
 			py.image.save_as(fig, filename='image.png')
 			api=tweepy.API(auth)
 			api.update_with_media(filename='image.png',text='{}'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:00')))
-			print("posted (in theory), sleeping for 1 hour seconds")
-			time. sleep(3600)
+			print("posted (in theory), sleeping for 6 hours")
+			time.sleep(300)
 		except Exception as ex:
 			print("{} occured in analysis, resetting\n".format(ex))
 			print(tweetData.labels)
@@ -165,7 +176,6 @@ if __name__=='__main__':
 	except AttributeError:
 		System.exit("attribute error at {}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
 	print (megatag)
-	time.sleep(40)
 	_thread.start_new_thread ( analyze, (auth,1) )
 	while True:
 		time.sleep(120)
