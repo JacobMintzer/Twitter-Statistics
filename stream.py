@@ -9,7 +9,7 @@ import os
 import copy
 import threading
 import _thread
-import datetime
+import datetimegit p
 import plotly.plotly as py
 import plotly.graph_objs as go
 
@@ -101,7 +101,7 @@ def analyze(auth, num):
 		try:
 			while(True):
 				curTime=time.localtime()
-				if(curTime.tm_hour==0||curTime.tm_hour==6||curTime.tm_hour==12||curTime.tm_hour==18):
+				if(curTime.tm_hour==0 or curTime.tm_hour==6 or curTime.tm_hour==12 or curTime.tm_hour==18):
 					if(curTime.tm_min>5):
 						time.sleep(19000)
 					
