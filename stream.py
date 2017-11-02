@@ -147,7 +147,12 @@ def analyze(auth, num):
 			print(tweetData.labels)
 			#tweetData.lock.release()
 
-
+def stream(megatag):
+	while True:
+		try:
+			myStream.filter(track=megatag)
+		except AttributeError:
+			print("error in stream at {}, resetting stream\n".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
 
 def fileCheck(fileName):
 	fileDir=os.path.dirname(os.path.realpath('__file__'))
@@ -171,17 +176,18 @@ if __name__=='__main__':
 	tweetData=Statistics(queryData["tags"])
 	myStreamListener = StdOutListener()
 	myStream = Stream(auth, myStreamListener)
+
 	try:
 		myStream.filter(track=megatag, async=True)
 	except AttributeError:
 		System.exit("attribute error at {}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
 	print (megatag)
 	_thread.start_new_thread ( analyze, (auth,1) )
-	while True:
-		time.sleep(120)
+	# while True:
+	# 	time.sleep(120)
 		
-		print("exporting")
-		tweetData.lock.acquire()
-		tweetData.export()
-		tweetData.lock.release()
-		print('total {} entries'.format(tweetData.totalEntries))
+	# 	print("exporting")
+	# 	tweetData.lock.acquire()
+	# 	tweetData.export()
+	# 	tweetData.lock.release()
+	# 	print('total {} entries'.format(tweetData.totalEntries))
