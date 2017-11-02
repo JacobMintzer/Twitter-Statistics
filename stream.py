@@ -7,7 +7,9 @@ import time
 import os
 import copy
 import threading
+import _thread
 import datetime
+import tweepy
 import plotly.plotly as py
 import plotly.graph_objs as go
 
@@ -93,18 +95,47 @@ class StdOutListener(StreamListener):
 # 		statistics.append({})
 # 	while True:
 
-def analyze():
+def analyze(auth, num):
+	print("starting analysis\n")
 	while True:
+		try:
+			print ("pre-lock\n")
+			tweetData.lock.acquire()
+			totalTweets=[]
+			popularityIndex=[]
+			totalTweeters=[]
+			mainTopics=[]
+			for label,storedData in zip(tweetData.labels,tweetData.stored_data):
+				mainTopics.append(label[0])
+				numTweets=0
+				popularity=0.0
+				Tweeters=0
+				for user in storedData:
+					Tweeters+=1
+					numTweets+=storedData[user]
+					popularity+=(storedData[user]**.5)
+				totalTweets.append(numTweets)
+				popularityIndex.append(popularity)
+				totalTweeters.append(Tweeters)
+			tweetData.lock.release()
+			print ("post lock\n")
+			#trace=go.Bar(x=tweetData.labels,y=popularityIndex)
+			data = [go.Bar(
+            x=mainTopics,
+            y=popularityIndex)]
 
-		sleep(21600)
-		for label,storedData in zip(tweetData.labels,tweetData.stored_data):
-			totalTweets=0
-			popularityIndex=0.0
-			totalTweeters=0
-			for user in storedData:
-				totalTweeters+=1
-				totalTweets+=storedData[user]
-				popularityIndex+=(storedData[user]**.5)
+			layout=go.Layout(title='{}'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:00')),width=1600, height=900)
+			fig = go.Figure(data=data, layout=layout)
+			py.image.save_as(fig, filename='image.png')
+			api=tweepy.API(auth)
+			api.update_with_media(filename='image.png',text='{}'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:00')))
+			print("posted (in theory), sleeping for 1 hour seconds")
+			time. sleep(3600)
+		except Exception as ex:
+			print("{} occured in analysis, resetting\n".format(ex))
+			print(tweetData.labels)
+			#tweetData.lock.release()
+
 
 
 def fileCheck(fileName):
@@ -117,6 +148,7 @@ if __name__=='__main__':
 	auth=OAuthHandler(data["consumer_key"],data["consumer_secret"])
 	auth.set_access_token(data["access_key"],data["access_secret"])
 	#api=tweepy.API(auth)
+	py.sign_in(data["username"], data["apikey"])
 	with open('topics.json') as topicFile:
 		queryData=json.load(topicFile)
 	megatag=[]
@@ -133,8 +165,11 @@ if __name__=='__main__':
 	except AttributeError:
 		System.exit("attribute error at {}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
 	print (megatag)
+	time.sleep(40)
+	_thread.start_new_thread ( analyze, (auth,1) )
 	while True:
 		time.sleep(120)
+		
 		print("exporting")
 		tweetData.lock.acquire()
 		tweetData.export()
