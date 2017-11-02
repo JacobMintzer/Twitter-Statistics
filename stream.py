@@ -1,4 +1,4 @@
-__author__ = 'jrmintz3@gmail.com'
+__author__ = 'statisticsdotmoe@gmail.com'
 import tweepy
 from tweepy import OAuthHandler
 from tweepy import Stream
@@ -9,7 +9,7 @@ import os
 import copy
 import threading
 import _thread
-import datetimegit p
+import datetime
 import plotly.plotly as py
 import plotly.graph_objs as go
 
