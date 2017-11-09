@@ -71,7 +71,8 @@ class Statistics:
 	def export(self):
 		with open("popularity.txt",'w+') as file:
 			for popVal in self.popularityIndex:
-				file.write(popVal+' ')
+				file.write(popVal)
+				file.write(" ")
 
 
 		# fileDir=os.path.dirname(os.path.realpath('__file__'))
@@ -221,20 +222,20 @@ if __name__=='__main__':
 		megatag=megatag+tag
 	global tweetData
 	if sys.argv[1]=="0":
-		status="Program starting with no previous data on {}.".format(datetime.datetime.fromtimestamp(time.time()).strftime('%m-%d at %H:%M'))
+		Status="Program starting with no previous data on {}.".format(datetime.datetime.fromtimestamp(time.time()).strftime('%m-%d at %H:%M'))
 		clean=True
 	elif sys.argv[1]=="1":
-		status="Program just crashed, restarting with previous data on {}.".format(datetime.datetime.fromtimestamp(time.time()).strftime('%m-%d at %H:%M'))
+		Status="Program just crashed, restarting with previous data on {}.".format(datetime.datetime.fromtimestamp(time.time()).strftime('%m-%d at %H:%M'))
 		clean=False
 	else:
-		status="Program stopped at unknown time, restarting with previous data on {}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%m-%d at %H:%M'))
+		Status="Program stopped at unknown time, restarting with previous data on {}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%m-%d at %H:%M'))
 		clean=False
 	tweetData=Statistics(queryData["tags"],clean)
 	myStreamListener = StdOutListener()
 	myStream = Stream(auth, myStreamListener)
 	_thread.start_new_thread ( stream, (myStream,megatag) )
 	print (megatag)
-	analyze(auth,status) 
+	analyze(auth,Status) 
 	# while True:
 	# 	time.sleep(120)
 		
