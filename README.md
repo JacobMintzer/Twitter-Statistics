@@ -17,7 +17,7 @@ data["reply_count"] : number of people who reply to this tweet
 data["retweet_count"] : number of people who retweet
 data["favorite_count"] : number of people who favorite
 ### tweetData ###
-This is an instance of the class Statistics. This class hold an array of strings: #### lables ####, which is the primary name of each topic, which at the moment is just the first tag.
-tweetData also holds the next data structure, stored_data
+This is an instance of the class Statistics. This class hold an array of strings: **lables**, which is the primary name of each topic, which at the moment is just the first tag.
+tweetData also holds the next data structure, **stored_data**
 ### stored_data ##
 This holds all the collected data from each tweet. This is structured in that it is an array of dictionaries. Each entry in the array refers to a dictionary, who's key value is the unique user ID, and the value is an array of arrays. Each array in the array of arrays refers to a single tweet, and the data stored in the array is [quote_count,reply_count,retweet_count,favorite_count] for each tweet
