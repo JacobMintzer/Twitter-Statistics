@@ -35,11 +35,11 @@ class Statistics:
 			with open("popularity.txt") as pop:
 				popList=pop.readline().split()
 			for popVal in popList:
-				print(str(popVal))
+				#print(str(popVal))
 				self.popularityIndex.append(int(popVal))
 		for tag in tags:
 			self.stored_data.append({})
-			print (tag)
+			#print (tag)
 			self.labels.append(tag)
 
 	def clear(self):
@@ -65,7 +65,7 @@ class Statistics:
 					if tag in data["text"]:
 						found=True
 				if found:
-					print("found")
+					#print("found")
 					if data["user"]["id_str"] in page.keys():
 						page[data["user"]["id_str"]].append([data["quote_count"],data["reply_count"],data["retweet_count"],data["favorite_count"]])
 						found=False
@@ -126,7 +126,8 @@ class StdOutListener(StreamListener):
 # 	while True:
 
 def analyze(auth,Status):
-	print("starting analysis\n")
+	
+	#print("starting analysis\n")
 	totalTweets=[]
 	popularityIndex=tweetData.popularityIndex
 	totalTweeters=[]
@@ -212,7 +213,7 @@ def analyze(auth,Status):
 				time.sleep(300)
 		except Exception as ex:
 			print("{} occured in analysis, resetting\n".format(ex))
-			print(tweetData.labels)
+			
 			#tweetData.lock.release()
 		finally:
 			tweetData.popularityIndex=popularityIndex
@@ -229,7 +230,7 @@ def stream(mystream,megatag):
 def compile(auth):
 	global tweetData
 	time.sleep(3600)
-	api=tweepy(auth)
+	api=tweepy.API(auth)
 	while True:
 		try:
 			curTime=time.localtime()
@@ -238,7 +239,6 @@ def compile(auth):
 				tweetData.times.pop(0)
 				for data in dataList:
 					tweetData.add(data)
-				print (len(tweetData.times))
 				time.sleep(60)
 			else:
 				time.sleep (120)
@@ -284,8 +284,8 @@ if __name__=='__main__':
 	myStreamListener = StdOutListener()
 	myStream = Stream(auth, myStreamListener)
 	_thread.start_new_thread ( stream, (myStream,megatag) )
-	#print (megatag)
 	_thread.start_new_thread(analyze, (auth,Status) )
+	print (megatag)
 	compile(auth)
 	# while True:
 	# 	time.sleep(120)
