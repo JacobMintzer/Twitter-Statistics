@@ -238,11 +238,11 @@ def compile(auth):
 				dataList=api.statuses_lookup(tweetData.tweetIDs.pop(0))
 				tweetData.times.pop(0)
 				for data in dataList:
-					tweetData.add(data)
+					tweetData.add(json.load(data))
 				time.sleep(60)
 			else:
 				time.sleep (120)
-		except error:
+		except Exception as error:
 			print ("{} error in compilation".format(error))
 
 
