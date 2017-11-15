@@ -60,6 +60,10 @@ class Statistics:
 		try:
 			found=False
 			self.lock.acquire()
+			#print( type(data))
+			#print ("\n\n{}\n\n".format(data))
+			#print("\n{}\n".format(type(data["text"])))
+
 			for (label,page) in zip(self.labels,self.stored_data):
 				for tag in label:
 					if tag in data["text"]:
@@ -75,10 +79,11 @@ class Statistics:
 						found=False
 			self.lock.release()
 
-		except KeyError:
+		except Exception as ex:
 			fileDir=os.path.dirname(os.path.realpath('__file__'))
-			with open(os.path.join(fileDir,'data/errlog.txt'),'a+') as errlog:
-				errlog.write('exception occured at {0} with tweet \n{1}\n\n'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),data))
+			# with open(os.path.join(fileDir,'data/errlog.txt'),'a+') as errlog:
+			# 	errlog.write('exception occured at {0} with tweet \n{1}\n\n'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),data))
+			print ("{} error occurd in add\n".format(ex))
 			self.lock.release()
 
 
@@ -109,7 +114,7 @@ class StdOutListener(StreamListener):
 	def on_data(self, data):
 		global tweetData
 		ID=json.loads(data)
-		tweetData.collect(ID["user"]["id_str"])
+		tweetData.collect(ID["id"])
 		return True
 
 	def on_error(self, status):
@@ -133,6 +138,7 @@ def analyze(auth,Status):
 	totalTweeters=[]
 	mainTopics=[]
 	TweetIDs=[]
+	debug=False
 	if Status=="debug":
 		debug=True
 	else:
@@ -153,8 +159,8 @@ def analyze(auth,Status):
 						break
 				else:
 					time.sleep(298)
-			tweetData.lock.acquire()
-			
+				tweetData.lock.acquire()
+				print("#1\n")			
 
 			#compiling data from each topic
 			for label,topicData,popularity in zip(tweetData.labels,tweetData.stored_data,popularityIndex):
@@ -182,13 +188,15 @@ def analyze(auth,Status):
 						totalReply+=reply
 						totalRetweet+=retweet
 						totalFav+=fav
-						popPerTweet=fav**(1/4)+retweet**(1/2)+reply**(1/3)+quote**(1/3)
+						popPerTweet=1+fav**(1/4)+retweet**(1/2)+reply**(1/3)+quote**(1/3)
 						userPop+=popPerTweet
 					popularity+=userPop**(1/2)
 				
 				#popularityIndex.append(popularity)
 				totalTweeters.append(Tweeters)
+			print("#2\n")
 			tweetData.export()
+			print("#3\n")
 			tweetData.lock.release()
 			#trace=go.Bar(x=tweetData.labels,y=popularityIndex)
 			#print (mainTopics)
@@ -196,8 +204,9 @@ def analyze(auth,Status):
 			data = [go.Bar(
             x=mainTopics,
             y=popularityIndex)]
-
+			print ("#4\n")
 			layout=go.Layout(title='{}'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M')),width=1600, height=900)
+			print ("#5\n")
 			fig = go.Figure(data=data, layout=layout)
 			py.image.save_as(fig, filename='image.png')
 			api=tweepy.API(auth)
@@ -213,6 +222,7 @@ def analyze(auth,Status):
 				time.sleep(300)
 		except Exception as ex:
 			print("{} occured in analysis, resetting\n".format(ex))
+			sys.exit()
 			
 			#tweetData.lock.release()
 		finally:
@@ -238,7 +248,8 @@ def compile(auth):
 				dataList=api.statuses_lookup(tweetData.tweetIDs.pop(0))
 				tweetData.times.pop(0)
 				for data in dataList:
-					tweetData.add(json.load(data))
+					jsonData=json.dumps(data._json)
+					tweetData.add(json.loads(jsonData))
 				time.sleep(60)
 			else:
 				time.sleep (120)
