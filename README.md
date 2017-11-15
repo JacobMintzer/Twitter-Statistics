@@ -4,7 +4,8 @@ Back end is written in Python, and uses the library Tweepy (version 3.2.0 for st
 Graphs are generated using Plotly, and exported to a png file, which is then uploaded to twitter
 Check out my current bot [HERE](https://twitter.com/Statistics_Moe)
 ## Current Formula ##
-![Equation 2](https://pbs.twimg.com/media/DOKLlqGVAAE-S40.jpg)
+![Equation 3](https://pbs.twimg.com/media/DOsVU0nVQAAYRWN.jpg)
+Retweet and favorite data is collected 100 tweets at a time, as soon as the oldest tweet is an hour old
 
 
 ## Data Structures ##
@@ -12,8 +13,6 @@ Right now the data structures are a bit confusing, and I play on cleannig it up 
 ### data ### 
 This refers to the json file that is a tweet. This holds all the information that a tweet holds, and is imported as a dictionary. Relevant data: 
 data["user"]["id_str"] : unique ID string
-data["quote_count"] : number of people who quote retweet
-data["reply_count"] : number of people who reply to this tweet
 data["retweet_count"] : number of people who retweet
 data["favorite_count"] : number of people who favorite
 ### tweetData ###

@@ -71,11 +71,11 @@ class Statistics:
 				if found:
 					#print("found")
 					if data["user"]["id_str"] in page.keys():
-						page[data["user"]["id_str"]].append([data["quote_count"],data["reply_count"],data["retweet_count"],data["favorite_count"]])
+						page[data["user"]["id_str"]].append([data["retweet_count"],data["favorite_count"]])
 						found=False
 					else:
 						page[data["user"]["id_str"]]=[]
-						page[data["user"]["id_str"]].append([data["quote_count"],data["reply_count"],data["retweet_count"],data["favorite_count"]])
+						page[data["user"]["id_str"]].append([data["retweet_count"],data["favorite_count"]])
 						found=False
 			self.lock.release()
 
@@ -167,28 +167,20 @@ def analyze(auth,Status):
 				mainTopics.append(label[0])
 				numTweets=0
 				Tweeters=0
-				totalQuote=0
-				totalReply=0
 				totalRetweet=0
 				totalFav=0
 				for user in topicData:
 					Tweeters+=1
-					quote=0
-					reply=0
 					retweet=0
 					fav=0
 					userPop=0.0
 					for userTweets in topicData[user]:
 						numTweets+=1
-						quote=userTweets[0]
-						reply=userTweets[1]
-						retweet=userTweets[2]
-						fav=userTweets[3]
-						totalQuote+=quote
-						totalReply+=reply
+						retweet=userTweets[0]
+						fav=userTweets[1]
 						totalRetweet+=retweet
 						totalFav+=fav
-						popPerTweet=1+fav**(1/4)+retweet**(1/2)+reply**(1/3)+quote**(1/3)
+						popPerTweet=1+fav**(1/4)+retweet**(1/2)
 						userPop+=popPerTweet
 					popularity+=userPop**(1/2)
 				
