@@ -66,7 +66,7 @@ class Statistics:
 
 			for (label,page) in zip(self.labels,self.stored_data):
 				for tag in label:
-					if tag in data["text"]:
+					if tag in data["text"] or tag in data["quoted_status"]["text"]:
 						found=True
 				if found:
 					#print("found")
@@ -77,8 +77,7 @@ class Statistics:
 						page[data["user"]["id_str"]]=[]
 						page[data["user"]["id_str"]].append([data["retweet_count"],data["favorite_count"]])
 						found=False
-				else:
-					print("tag not found, dumping tweet \n{}\n".format(data))
+				
 			#self.lock.release()
 
 		except Exception as ex:
