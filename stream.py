@@ -77,6 +77,8 @@ class Statistics:
 						page[data["user"]["id_str"]]=[]
 						page[data["user"]["id_str"]].append([data["retweet_count"],data["favorite_count"]])
 						found=False
+				else:
+					print("tag not found, dumping tweet \n{}\n".format(data))
 			#self.lock.release()
 
 		except Exception as ex:
@@ -84,7 +86,7 @@ class Statistics:
 			# with open(os.path.join(fileDir,'data/errlog.txt'),'a+') as errlog:
 			# 	errlog.write('exception occured at {0} with tweet \n{1}\n\n'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),data))
 			print ("{} error occurd in add\n".format(ex))
-			self.lock.release()
+			#self.lock.release()
 
 
 	def export(self):
@@ -161,6 +163,8 @@ def analyze(auth,Status):
 					time.sleep(298)
 				print("#1\n")			
 
+			compile(auth)
+			print("finished compiling\n")
 			#compiling data from each topic
 			for label,topicData,popularity in zip(tweetData.labels,tweetData.stored_data,popularityIndex):
 				mainTopics.append(label[0])
@@ -230,22 +234,23 @@ def stream(mystream,megatag):
 
 def compile(auth):
 	global tweetData
-	time.sleep(3600)
 	api=tweepy.API(auth)
-	while True:
+	while len(tweetData.tweetIDs)>0
 		try:
-			curTime=time.localtime()
-			if (tweetData.times[0].tm_hour<curTime.tm_hour or (tweetData.times[0].tm_hour==23 and curTime.tm_hour<=1 ) and tweetData.times[0].tm_min<curTime.tm_min) or (tweetData.times[0].tm_hour+2)%24<=curTime.tm_hour:
+			#curTime=time.localtime()
+			#elapsed=times[0]-curTime
+			#if elapsed.tm_hour>=1:
+				print("time to lookup!")
 				dataList=api.statuses_lookup(tweetData.tweetIDs.pop(0))
-				tweetData.times.pop(0)
+				#tweetData.times.pop(0)
 				for data in dataList:
 					jsonData=json.dumps(data._json)
 					tweetData.add(json.loads(jsonData))
-				time.sleep(60)
-			else:
-				time.sleep (120)
+			#else:
+			#	time.sleep (120)
 		except Exception as error:
 			print ("{} error in compilation".format(error))
+		time.sleep(60)
 
 
 
@@ -288,7 +293,6 @@ if __name__=='__main__':
 	_thread.start_new_thread ( stream, (myStream,megatag) )
 	_thread.start_new_thread(analyze, (auth,Status) )
 	print (megatag)
-	compile(auth)
 	# while True:
 	# 	time.sleep(120)
 		
