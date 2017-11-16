@@ -133,18 +133,20 @@ class StdOutListener(StreamListener):
 # 	while True:
 
 def analyze(auth,Status):
-	
-	#print("starting analysis\n")
-	totalTweets=[]
-	popularityIndex=tweetData.popularityIndex
-	totalTweeters=[]
-	mainTopics=[]
-	TweetIDs=[]
-	debug=False
-	if Status=="debug":
-		debug=True
-	else:
-		time.sleep(3700)
+	try:
+		print("starting analysis\n")
+		totalTweets=[]
+		popularityIndex=tweetData.popularityIndex
+		totalTweeters=[]
+		mainTopics=[]
+		TweetIDs=[]
+		debug=False
+		if Status=="debug":
+			debug=True
+		else:
+			time.sleep(3700)
+	except Exception as ex:
+		print ("{} exception in early analysis".format(ex))
 	while True:
 		try:
 			
@@ -291,8 +293,8 @@ if __name__=='__main__':
 	myStreamListener = StdOutListener()
 	myStream = Stream(auth, myStreamListener)
 	_thread.start_new_thread ( stream, (myStream,megatag) )
-	_thread.start_new_thread(analyze, (auth,Status) )
 	print (megatag)
+	analyze (auth,Status) 
 	# while True:
 	# 	time.sleep(120)
 		
