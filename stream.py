@@ -152,14 +152,13 @@ def analyze(auth,Status):
 				if debug:
 					time.sleep(30)
 					break
-				if curTime.tm_hour==23 or curTime.tm_hour==5 or curTime.tm_hour==11 or curTime.tm_hour==17:
+				if curTime.tm_hour%3==2:
 					if curTime.tm_min>5:
 						time.sleep(5*60*(60-curTime.tm_min))
 					else:
 						break
 				else:
 					time.sleep(298)
-				tweetData.lock.acquire()
 				print("#1\n")			
 
 			#compiling data from each topic
@@ -189,7 +188,7 @@ def analyze(auth,Status):
 			print("#2\n")
 			tweetData.export()
 			print("#3\n")
-			tweetData.lock.release()
+			#tweetData.lock.release()
 			#trace=go.Bar(x=tweetData.labels,y=popularityIndex)
 			#print (mainTopics)
 			#print (popularityIndex)
