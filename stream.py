@@ -66,7 +66,7 @@ class Statistics:
 
 			for (label,page) in zip(self.labels,self.stored_data):
 				for tag in label:
-					if tag in data["text"] or tag in data["quoted_status"]["text"]:
+					if tag in data["text"]:
 						found=True
 				if found:
 					#print("found")
