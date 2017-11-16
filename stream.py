@@ -235,7 +235,7 @@ def stream(mystream,megatag):
 def compile(auth):
 	global tweetData
 	api=tweepy.API(auth)
-	while len(tweetData.tweetIDs)>0
+	while len(tweetData.tweetIDs)>0:
 		try:
 			#curTime=time.localtime()
 			#elapsed=times[0]-curTime
