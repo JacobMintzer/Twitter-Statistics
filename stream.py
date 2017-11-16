@@ -59,7 +59,7 @@ class Statistics:
 	def add(self,data):
 		try:
 			found=False
-			self.lock.acquire()
+			#self.lock.acquire()
 			#print( type(data))
 			#print ("\n\n{}\n\n".format(data))
 			#print("\n{}\n".format(type(data["text"])))
@@ -77,7 +77,7 @@ class Statistics:
 						page[data["user"]["id_str"]]=[]
 						page[data["user"]["id_str"]].append([data["retweet_count"],data["favorite_count"]])
 						found=False
-			self.lock.release()
+			#self.lock.release()
 
 		except Exception as ex:
 			fileDir=os.path.dirname(os.path.realpath('__file__'))
