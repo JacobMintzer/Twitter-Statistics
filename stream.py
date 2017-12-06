@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 __author__ = 'statisticsdotmoe@gmail.com'
 import tweepy
 from tweepy import OAuthHandler
@@ -16,36 +19,40 @@ import plotly.graph_objs as go
 import test
 
 
-
 class Statistics:
 
 	def __init__(self, tags, clean):
-		self.stored_data = [] # Array of dictionaries, key is userID, value is num tweets
-		self.labels = [] # Referenced name of all topics, used for file names
-		self.lock=threading.Lock()
+		self.stored_data = {} # Array of dictionaries, key is tag, value is array of number of favs, RTs
+		self.topics = [] # Referenced name of all topics
+		self.lock=threading.Lock() #not currently being used
 		self.startTime = time.time()
+		self.tags={}
 		self.totalEntries=0	
-		self.popularityIndex=[]
+		self.popularityIndex={}
 		self.tweetIDs=[]
 		self.times=[]
+		
+		for tag in tags:
+			self.tags[tag[0]]=tag
+			self.topics.append(tag[0])
+			self.stored_data[tag[0]]=[]
+			#print (tag)
+		
 		if clean:
-			for tag in tags:
-				self.popularityIndex.append(0)
+			for topic in self.topics:
+				self.popularityIndex[topic]=1
 		else:
 			with open("popularity.txt") as pop:
 				popList=pop.readline().split()
-			for popVal in popList:
+			for popVal,topic in zip(popList,self.topics):
 				#print(str(popVal))
-				self.popularityIndex.append(int(popVal))
-		for tag in tags:
-			self.stored_data.append({})
-			#print (tag)
-			self.labels.append(tag)
+				self.popularityIndex[topic]=int(popVal)
+		
 
 	def clear(self):
-		self.stored_data=[]
-		for tag in self.labels:
-			self.stored_data.append({})
+		self.stored_data={}
+		for tag in self.topics:
+			self.stored_data[tag]=[]
 
 	def collect(self,ID):
 		if(len(self.tweetIDs)==0):
@@ -58,42 +65,44 @@ class Statistics:
 
 	def add(self,data):
 		try:
-			found=False
+			
 			#self.lock.acquire()
 			#print( type(data))
-			#print ("\n\n{}\n\n".format(data))
+			#print ("\n\n{}\n\n".format(data["text"]))
 			#print("\n{}\n".format(type(data["text"])))
+			#print (type(self.tags[0]))
+			found=False
+			for topic in self.topics:
 
-			for (label,page) in zip(self.labels,self.stored_data):
-				for tag in label:
+				for tag in self.tags[topic]:
 					if tag in data["text"]:
 						found=True
 				if found:
-					#print("found")
-					if data["user"]["id_str"] in page.keys():
-						page[data["user"]["id_str"]].append([data["retweet_count"],data["favorite_count"]])
-						found=False
-					else:
-						page[data["user"]["id_str"]]=[]
-						page[data["user"]["id_str"]].append([data["retweet_count"],data["favorite_count"]])
-						found=False
+					#print("just found\n")
+					self.stored_data[topic].append([1+data["retweet_count"],1+data["favorite_count"]])
+					found=False
+					
 				
 			#self.lock.release()
 
 		except Exception as ex:
-			fileDir=os.path.dirname(os.path.realpath('__file__'))
+			#fileDir=os.path.dirname(os.path.realpath('__file__'))
 			# with open(os.path.join(fileDir,'data/errlog.txt'),'a+') as errlog:
 			# 	errlog.write('exception occured at {0} with tweet \n{1}\n\n'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),data))
-			print ("{} error occurd in add\n".format(ex))
+			print ("{} error occured in add\n".format(ex))
+			print (ex.__class__.__name__)
+			print ("\n")
 			#self.lock.release()
 
 
 	def export(self):
-		with open("popularity.txt",'w+') as file:
-			for popVal in self.popularityIndex:
-				file.write(str(popVal))
-				file.write(" ")
-
+		print("exporting\n")
+		with open("popularity.txt",'w') as file:
+			output=""
+			for topic in self.topics:
+				output+=str(self.popularityIndex[topic])
+				output+=" "
+			file.write(output)
 
 		# fileDir=os.path.dirname(os.path.realpath('__file__'))
 
@@ -115,7 +124,8 @@ class StdOutListener(StreamListener):
 	def on_data(self, data):
 		global tweetData
 		ID=json.loads(data)
-		tweetData.collect(ID["id"])
+		if not ID['retweeted'] and 'RT @' not in ID['text']:
+			tweetData.collect(ID["id"])
 		return True
 
 	def on_error(self, status):
@@ -132,10 +142,10 @@ class StdOutListener(StreamListener):
 # 	while True:
 
 def analyze(auth,Status):
+	global tweetData
 	try:
 		print("starting analysis\n")
 		totalTweets=[]
-		popularityIndex=tweetData.popularityIndex
 		totalTweeters=[]
 		mainTopics=[]
 		TweetIDs=[]
@@ -150,14 +160,14 @@ def analyze(auth,Status):
 		try:
 			
 
-			while(True):	#system so that program only runs at 6 or 12, adjusted since server is an hour off of my time
+			while(True):	#system so that program only runs at 6 or 12, adjusted since server is an hour off of my time, sometimes changed for debugging
 				curTime=time.localtime()
 				if debug:
 					time.sleep(30)
 					break
 				if curTime.tm_hour%3==2:
 					if curTime.tm_min>5:
-						time.sleep(5*60*(60-curTime.tm_min))
+						time.sleep(3*60*(60-curTime.tm_min))
 					else:
 						break
 				else:
@@ -165,41 +175,43 @@ def analyze(auth,Status):
 				print("#1\n")			
 
 			compile(auth)
-			print("finished compiling\n")
+			print("finished compiling\n ")
 			#compiling data from each topic
-			for label,topicData,popularity in zip(tweetData.labels,tweetData.stored_data,popularityIndex):
-				mainTopics.append(label[0])
-				numTweets=0
-				Tweeters=0
-				totalRetweet=0
-				totalFav=0
-				for user in topicData:
-					Tweeters+=1
-					retweet=0
-					fav=0
-					userPop=0.0
-					for userTweets in topicData[user]:
-						numTweets+=1
-						retweet=userTweets[0]
-						fav=userTweets[1]
-						totalRetweet+=retweet
+
+			
+			for topic in tweetData.topics:
+				try:
+					#print ("topic {} has {} tweets starting with pop {}\n".format(topic,len(tweetData.stored_data[topic]),tweetData.popularityIndex[topic]))
+					numTweets=0
+					Tweeters=0
+					totalRetweet=0
+					totalFav=0
+					topicPop=0
+					for tweetStat in tweetData.stored_data[topic]:
+						rt=tweetStat[0]
+						fav=tweetStat[1]
+						totalRetweet+=rt
 						totalFav+=fav
-						popPerTweet=1+fav**(1/4)+retweet**(1/2)
-						userPop+=popPerTweet
-					popularity+=userPop**(1/2)
-				
-				#popularityIndex.append(popularity)
-				totalTweeters.append(Tweeters)
+						popPerTweet=1+fav**.5+rt**.75
+						topicPop+=popPerTweet
+					tweetData.popularityIndex[topic]+=topicPop
+				except Exception as ex1:
+					print ("{} {}  error in mid analysis\n".format (ex1,ex1.__class__.__name__))
 			print("#2\n")
+			# print (tweetData.popularityIndex)
+			# print("\n{}\n".format(popularityIndex))
+			#tweetData.popularityIndex=popularityIndex
+			print ("\n")
 			tweetData.export()
 			print("#3\n")
 			#tweetData.lock.release()
 			#trace=go.Bar(x=tweetData.labels,y=popularityIndex)
 			#print (mainTopics)
 			#print (popularityIndex)
-			data = [go.Bar(
-            x=mainTopics,
-            y=popularityIndex)]
+			popularity=[]
+			for topic in tweetData.topics:
+				popularity.append(tweetData.popularityIndex[topic])
+			data = [go.Bar(x=tweetData.topics,y=popularity)]
 			print ("#4\n")
 			layout=go.Layout(title='{}'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M')),width=1600, height=900)
 			print ("#5\n")
@@ -214,17 +226,15 @@ def analyze(auth,Status):
 				api.update_with_media(filename='image.png',status="{1}\n{0}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:00'),Status))
 				Status=""
 			print("posted")
-			if not debug:
-				time.sleep(300)
+			time.sleep(300)
 		except Exception as ex:
-			print("{} occured in analysis, resetting\n".format(ex))
-			sys.exit()
+			print("{}  {} occured in late analysis, resetting\n".format(ex,ex.__class__.__name__))
 			
 			#tweetData.lock.release()
 		finally:
-			tweetData.popularityIndex=popularityIndex
+			#tweetData.popularityIndex=popularityIndex
 			for pop in tweetData.popularityIndex:
-				pop=pop**.75
+				tweetData.popularityIndex[pop]=tweetData.popularityIndex[pop]**.75	#data deteriorates: old data less important, but still important
 
 def stream(mystream,megatag):
 	while True:
@@ -236,12 +246,18 @@ def stream(mystream,megatag):
 def compile(auth):
 	global tweetData
 	api=tweepy.API(auth)
+	last=False
 	while len(tweetData.tweetIDs)>0:
+		print ("{0} arrays of tweets left of length {1}\n".format(len(tweetData.tweetIDs),len(tweetData.tweetIDs[0])))
+		if len(tweetData.tweetIDs[0])<100:
+			print("last\n")
+			last=True
 		try:
 			#curTime=time.localtime()
 			#elapsed=times[0]-curTime
 			#if elapsed.tm_hour>=1:
-				print("time to lookup!")
+				#print("time to lookup!")
+				print("tweet data is \n {} \n".format(tweetData.tweetIDs[0]))
 				dataList=api.statuses_lookup(tweetData.tweetIDs.pop(0))
 				#tweetData.times.pop(0)
 				for data in dataList:
@@ -251,8 +267,10 @@ def compile(auth):
 			#	time.sleep (120)
 		except Exception as error:
 			print ("{} error in compilation".format(error))
+		if last:
+			break
 		time.sleep(60)
-
+		
 
 
 # def fileCheck(fileName):
