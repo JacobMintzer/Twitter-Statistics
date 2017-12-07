@@ -247,7 +247,9 @@ def compile(auth):
 	global tweetData
 	api=tweepy.API(auth)
 	last=False
-	while len(tweetData.tweetIDs)>0:
+	i=0
+	while len(tweetData.tweetIDs)>0 and i<60:
+		i++
 		print ("{0} arrays of tweets left of length {1}\n".format(len(tweetData.tweetIDs),len(tweetData.tweetIDs[0])))
 		if len(tweetData.tweetIDs[0])<100:
 			print("last\n")
@@ -270,7 +272,8 @@ def compile(auth):
 		if last:
 			break
 		time.sleep(60)
-		
+	if i>70:
+		tweetData.tweetIDs=[]
 
 
 # def fileCheck(fileName):
