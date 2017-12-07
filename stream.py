@@ -46,7 +46,7 @@ class Statistics:
 				popList=pop.readline().split()
 			for popVal,topic in zip(popList,self.topics):
 				#print(str(popVal))
-				self.popularityIndex[topic]=int(popVal)
+				self.popularityIndex[topic]=float(popVal)
 		
 
 	def clear(self):
@@ -97,7 +97,7 @@ class Statistics:
 
 	def export(self):
 		print("exporting\n")
-		with open("popularity.txt",'w') as file:
+		with open("./popularity.txt",'w') as file:
 			output=""
 			for topic in self.topics:
 				output+=str(self.popularityIndex[topic])
@@ -165,14 +165,14 @@ def analyze(auth,Status):
 				if debug:
 					time.sleep(30)
 					break
-				if curTime.tm_hour%3==2:
+				if curTime.tm_hour%6==5:
 					if curTime.tm_min>5:
-						time.sleep(3*60*(60-curTime.tm_min))
+						time.sleep(6*60*(60-curTime.tm_min))
 					else:
 						break
 				else:
 					time.sleep(298)
-				print("#1\n")			
+			print("#1\n")			
 
 			compile(auth)
 			print("finished compiling\n ")
@@ -192,7 +192,7 @@ def analyze(auth,Status):
 						fav=tweetStat[1]
 						totalRetweet+=rt
 						totalFav+=fav
-						popPerTweet=1+fav**.5+rt**.75
+						popPerTweet=.1+fav**.5+rt**.75
 						topicPop+=popPerTweet
 					tweetData.popularityIndex[topic]+=topicPop
 				except Exception as ex1:
@@ -210,8 +210,8 @@ def analyze(auth,Status):
 			#print (popularityIndex)
 			popularity=[]
 			for topic in tweetData.topics:
-				popularity.append(tweetData.popularityIndex[topic])
-			data = [go.Bar(x=tweetData.topics,y=popularity)]
+				popularity.append("%.5f"%tweetData.popularityIndex[topic])
+			data = [go.Bar(x=tweetData.topics,y=popularity,text=popularity,textposition='auto',)]
 			print ("#4\n")
 			layout=go.Layout(title='{}'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M')),width=1600, height=900)
 			print ("#5\n")
@@ -234,7 +234,7 @@ def analyze(auth,Status):
 		finally:
 			#tweetData.popularityIndex=popularityIndex
 			for pop in tweetData.popularityIndex:
-				tweetData.popularityIndex[pop]=tweetData.popularityIndex[pop]**.75	#data deteriorates: old data less important, but still important
+				tweetData.popularityIndex[pop]=tweetData.popularityIndex[pop]**0.5	#data deteriorates: old data less important, but still important
 
 def stream(mystream,megatag):
 	while True:
