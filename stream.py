@@ -89,6 +89,8 @@ class Statistics:
 			#fileDir=os.path.dirname(os.path.realpath('__file__'))
 			# with open(os.path.join(fileDir,'data/errlog.txt'),'a+') as errlog:
 			# 	errlog.write('exception occured at {0} with tweet \n{1}\n\n'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),data))
+			with open ("./twitter_errlog.txt","a") as errlog:
+				errlog.write("{0} error of type {1} occured in add\n".format(ex,ex.__class__.__name__))
 			print ("{} error occured in add\n".format(ex))
 			print (ex.__class__.__name__)
 			print ("\n")
@@ -155,6 +157,8 @@ def analyze(auth,Status):
 		else:
 			time.sleep(3700)
 	except Exception as ex:
+		with open ("./twitter_errlog.txt","a") as errlog:
+			errlog.write("{0} error of type {1} occured in early analysis\n".format(ex,ex.__class__.__name__))
 		print ("{} exception in early analysis".format(ex))
 	while True:
 		try:
@@ -171,7 +175,7 @@ def analyze(auth,Status):
 					else:
 						break
 				else:
-					time.sleep(298)
+					time.sleep(300)
 			print("#1\n")			
 
 			compile(auth)
@@ -196,6 +200,8 @@ def analyze(auth,Status):
 						topicPop+=popPerTweet
 					tweetData.popularityIndex[topic]+=topicPop
 				except Exception as ex1:
+					with open ("./twitter_errlog.txt","a") as errlog:
+						errlog.write("{0} error of type {1} occured in mid analysis\n".format(ex1,ex1.__class__.__name__))
 					print ("{} {}  error in mid analysis\n".format (ex1,ex1.__class__.__name__))
 			print("#2\n")
 			# print (tweetData.popularityIndex)
@@ -229,6 +235,8 @@ def analyze(auth,Status):
 			time.sleep(300)
 		except Exception as ex:
 			print("{}  {} occured in late analysis, resetting\n".format(ex,ex.__class__.__name__))
+			with open ("./twitter_errlog.txt","a") as errlog:
+				errlog.write("{0} error of type {1} occured in late analysis\n".format(ex,ex.__class__.__name__))
 			
 			#tweetData.lock.release()
 		finally:
@@ -240,8 +248,10 @@ def stream(mystream,megatag):
 	while True:
 		try:
 			myStream.filter(track=megatag)
-		except Exception as error:
-			print("error {1} in stream at {0}, resetting stream\n".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),error))
+		except Exception as ex:
+			print("error {1} in stream at {0}, resetting stream\n".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),ex))
+			with open ("./twitter_errlog.txt","a") as errlog:
+				errlog.write("{0} error of type {1} occured in stream\n".format(ex,ex.__class__.__name__))
 
 def compile(auth):
 	global tweetData
@@ -249,7 +259,7 @@ def compile(auth):
 	last=False
 	i=0
 	while len(tweetData.tweetIDs)>0 and i<60:
-		i++
+		i+=1
 		print ("{0} arrays of tweets left of length {1}\n".format(len(tweetData.tweetIDs),len(tweetData.tweetIDs[0])))
 		if len(tweetData.tweetIDs[0])<100:
 			print("last\n")
@@ -267,8 +277,10 @@ def compile(auth):
 					tweetData.add(json.loads(jsonData))
 			#else:
 			#	time.sleep (120)
-		except Exception as error:
-			print ("{} error in compilation".format(error))
+		except Exception as ex:
+			print ("{} error in compilation".format(ex))
+			with open ("./twitter_errlog.txt","a") as errlog:
+				errlog.write("{0} error of type {1} occured in compilation\n".format(ex,ex.__class__.__name__))
 		if last:
 			break
 		time.sleep(60)
