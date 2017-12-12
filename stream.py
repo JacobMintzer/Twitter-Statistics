@@ -170,13 +170,13 @@ def analyze(auth,Status):
 					time.sleep(30)
 					break
 				if curTime.tm_hour%6==5:
-					if curTime.tm_min>5:
+					if curTime.tm_min>1:
 						time.sleep(6*60*(60-curTime.tm_min))
 					else:
 						break
 				else:
-					time.sleep(300)
-			print("#1\n")			
+					time.sleep((60-curTime.tm_min)*60)
+			print("#1\n")
 
 			compile(auth)
 			print("finished compiling\n ")
