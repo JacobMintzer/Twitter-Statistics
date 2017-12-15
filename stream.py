@@ -152,10 +152,9 @@ def analyze(auth,Status):
 		mainTopics=[]
 		TweetIDs=[]
 		debug=False
+		msg=0
 		if Status=="debug":
 			debug=True
-		else:
-			time.sleep(3700)
 	except Exception as ex:
 		with open ("./twitter_errlog.txt","a") as errlog:
 			errlog.write("{0} error of type {1} occured in early analysis\n".format(ex,ex.__class__.__name__))
@@ -164,14 +163,14 @@ def analyze(auth,Status):
 		try:
 			
 
-			while(True):	#system so that program only runs at 6 or 12, adjusted since server is an hour off of my time, sometimes changed for debugging
+			while(True):	#system so that program only runs at 8 am/pm
 				curTime=time.localtime()
 				if debug:
 					time.sleep(30)
 					break
-				if curTime.tm_hour%6==5:
+				if curTime.tm_hour%12==7:
 					if curTime.tm_min>1:
-						time.sleep(6*60*(60-curTime.tm_min))
+						time.sleep(12*60*(60-curTime.tm_min))
 					else:
 						break
 				else:
@@ -196,7 +195,7 @@ def analyze(auth,Status):
 						fav=tweetStat[1]
 						totalRetweet+=rt
 						totalFav+=fav
-						popPerTweet=.1+fav**.5+rt**.75
+						popPerTweet=1+fav*.05+rt*.1
 						topicPop+=popPerTweet
 					tweetData.popularityIndex[topic]+=topicPop
 				except Exception as ex1:
@@ -223,9 +222,16 @@ def analyze(auth,Status):
 			print ("#5\n")
 			fig = go.Figure(data=data, layout=layout)
 			py.image.save_as(fig, filename='image.png')
+			with open ("./msg.txt","r+") as message:
+				if "reset" in message.readline():
+					msg=1
+			with open ("./msg.txt","w+") as message:
+				message.truncate()
 			api=tweepy.API(auth)
 			if debug:
 				print("not posting to twitter because in debug mode, check the file yourself")
+			elif msg==1:
+				api.update_with_media(filename='image.png',status="program briefly stopping for update after this\n {}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:00')))
 			elif Status=="":
 				api.update_with_media(filename='image.png',status="{}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:00')))
 			else:
@@ -243,6 +249,8 @@ def analyze(auth,Status):
 			#tweetData.popularityIndex=popularityIndex
 			for pop in tweetData.popularityIndex:
 				tweetData.popularityIndex[pop]=tweetData.popularityIndex[pop]**0.5	#data deteriorates: old data less important, but still important
+			if msg==1:
+				sys.exit(0)
 
 def stream(mystream,megatag):
 	while True:
