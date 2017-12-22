@@ -17,103 +17,8 @@ import datetime
 import plotly.plotly as py
 import plotly.graph_objs as go
 import test
-
-
-class Statistics:
-
-	def __init__(self, tags, clean):
-		self.stored_data = {} # Array of dictionaries, key is tag, value is array of number of favs, RTs
-		self.topics = [] # Referenced name of all topics
-		self.lock=threading.Lock() #not currently being used
-		self.startTime = time.time()
-		self.tags={}
-		self.totalEntries=0	
-		self.popularityIndex={}
-		self.tweetIDs=[]
-		self.times=[]
-		
-		for tag in tags:
-			self.tags[tag[0]]=tag
-			self.topics.append(tag[0])
-			self.stored_data[tag[0]]=[]
-			#print (tag)
-		
-		if clean:
-			for topic in self.topics:
-				self.popularityIndex[topic]=1
-		else:
-			with open("popularity.txt") as pop:
-				popList=pop.readline().split()
-			for popVal,topic in zip(popList,self.topics):
-				#print(str(popVal))
-				self.popularityIndex[topic]=float(popVal)
-		
-
-	def clear(self):
-		self.stored_data={}
-		for tag in self.topics:
-			self.stored_data[tag]=[]
-
-	def collect(self,ID):
-		if(len(self.tweetIDs)==0):
-			self.tweetIDs.append([])
-			self.times.append(time.localtime())
-		elif len(self.tweetIDs[len(self.tweetIDs)-1])%100==0:
-			self.tweetIDs.append([])
-			self.times.append(time.localtime())
-		self.tweetIDs[len(self.tweetIDs)-1].append(ID)
-
-	def add(self,data):
-		try:
-			
-			#self.lock.acquire()
-			#print( type(data))
-			#print ("\n\n{}\n\n".format(data["text"]))
-			#print("\n{}\n".format(type(data["text"])))
-			#print (type(self.tags[0]))
-			found=False
-			for topic in self.topics:
-
-				for tag in self.tags[topic]:
-					if tag in data["text"]:
-						found=True
-				if found:
-					#print("just found\n")
-					self.stored_data[topic].append([1+data["retweet_count"],1+data["favorite_count"]])
-					found=False
-					
-				
-			#self.lock.release()
-
-		except Exception as ex:
-			#fileDir=os.path.dirname(os.path.realpath('__file__'))
-			# with open(os.path.join(fileDir,'data/errlog.txt'),'a+') as errlog:
-			# 	errlog.write('exception occured at {0} with tweet \n{1}\n\n'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),data))
-			with open ("./twitter_errlog.txt","a") as errlog:
-				errlog.write("{0} error of type {1} occured in add\n".format(ex,ex.__class__.__name__))
-			print ("{} error occured in add\n".format(ex))
-			print (ex.__class__.__name__)
-			print ("\n")
-			#self.lock.release()
-
-
-	def export(self):
-		print("exporting\n")
-		with open("./popularity.txt",'w') as file:
-			output=""
-			for topic in self.topics:
-				output+=str(self.popularityIndex[topic])
-				output+=" "
-			file.write(output)
-
-		# fileDir=os.path.dirname(os.path.realpath('__file__'))
-
-		# with open(os.path.join(fileDir,'data/info.txt'),'w+') as infoFile:
-		# 	infoFile.write('Starting time:{0}\nTotal {1} entries\nLast edited at {2}\n'.format(datetime.datetime.fromtimestamp(self.startTime).strftime('%Y-%m-%d %H:%M:%S'),self.totalEntries,datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
-
-
-
-
+from statistics import Statistics
+from topic import Topic
 
 
 
@@ -168,55 +73,55 @@ def analyze(auth,Status):
 				if debug:
 					time.sleep(30)
 					break
-				if curTime.tm_hour%12==7:
+				if curTime.tm_hour%12==1:
 					if curTime.tm_min>1:
 						time.sleep(12*60*(60-curTime.tm_min))
 					else:
 						break
 				else:
 					time.sleep((60-curTime.tm_min)*60)
-			print("#1\n")
+			#print("#1\n")
 
 			compile(auth)
-			print("finished compiling\n ")
+			#print("finished compiling\n ")
 			#compiling data from each topic
 
 			
-			for topic in tweetData.topics:
-				try:
-					#print ("topic {} has {} tweets starting with pop {}\n".format(topic,len(tweetData.stored_data[topic]),tweetData.popularityIndex[topic]))
-					numTweets=0
-					Tweeters=0
-					totalRetweet=0
-					totalFav=0
-					topicPop=0
-					for tweetStat in tweetData.stored_data[topic]:
-						rt=tweetStat[0]
-						fav=tweetStat[1]
-						totalRetweet+=rt
-						totalFav+=fav
-						popPerTweet=1+fav*.05+rt*.1
-						topicPop+=popPerTweet
-					tweetData.popularityIndex[topic]+=topicPop
-				except Exception as ex1:
-					with open ("./twitter_errlog.txt","a") as errlog:
-						errlog.write("{0} error of type {1} occured in mid analysis\n".format(ex1,ex1.__class__.__name__))
-					print ("{} {}  error in mid analysis\n".format (ex1,ex1.__class__.__name__))
-			print("#2\n")
+			##90% sure this is now covered in topic class
+
+			# for topic in tweetData.topics:
+			# 	try:
+			# 		#print ("topic {} has {} tweets starting with pop {}\n".format(topic,len(tweetData.stored_data[topic]),tweetData.popularityIndex[topic]))
+			# 		numTweets=0
+			# 		Tweeters=0
+			# 		totalRetweet=0
+			# 		totalFav=0
+			# 		topicPop=0
+			# 		for tweetStat in tweetData.stored_data[topic]:
+			# 			rt=tweetStat[0]
+			# 			fav=tweetStat[1]
+			# 			totalRetweet+=rt
+			# 			totalFav+=fav
+			# 			popPerTweet=1+fav*.05+rt*.1
+			# 			topicPop+=popPerTweet
+			# 		tweetData.popularityIndex[topic]+=topicPop
+			# 	except Exception as ex1:
+			# 		with open ("./twitter_errlog.txt","a") as errlog:
+			# 			errlog.write("{0} error of type {1} occured in mid analysis\n".format(ex1,ex1.__class__.__name__))
+			# 		print ("{} {}  error in mid analysis\n".format (ex1,ex1.__class__.__name__))
+			#print("#2\n")
 			# print (tweetData.popularityIndex)
 			# print("\n{}\n".format(popularityIndex))
 			#tweetData.popularityIndex=popularityIndex
-			print ("\n")
+
 			tweetData.export()
-			print("#3\n")
+			
 			#tweetData.lock.release()
 			#trace=go.Bar(x=tweetData.labels,y=popularityIndex)
 			#print (mainTopics)
 			#print (popularityIndex)
-			popularity=[]
-			for topic in tweetData.topics:
-				popularity.append("%.5f"%tweetData.popularityIndex[topic])
-			data = [go.Bar(x=tweetData.topics,y=popularity,text=popularity,textposition='auto',)]
+			popularity=tweetData.getPop()
+			data = [go.Bar(x=tweetData.getTopicNames(),y=popularity,text=popularity,textposition='auto',)]
 			print ("#4\n")
 			layout=go.Layout(title='{}'.format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M')),width=1600, height=900)
 			print ("#5\n")
@@ -238,17 +143,14 @@ def analyze(auth,Status):
 				api.update_with_media(filename='image.png',status="{1}\n{0}".format(datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:00'),Status))
 				Status=""
 			print("posted")
+			if msg==1:
+				sys.exit(0)
 			time.sleep(300)
 		except Exception as ex:
 			print("{}  {} occured in late analysis, resetting\n".format(ex,ex.__class__.__name__))
 			with open ("./twitter_errlog.txt","a") as errlog:
 				errlog.write("{0} error of type {1} occured in late analysis\n".format(ex,ex.__class__.__name__))
-			
 			#tweetData.lock.release()
-		finally:
-			#tweetData.popularityIndex=popularityIndex
-			for pop in tweetData.popularityIndex:
-				tweetData.popularityIndex[pop]=tweetData.popularityIndex[pop]**0.5	#data deteriorates: old data less important, but still important
 			if msg==1:
 				sys.exit(0)
 
@@ -268,9 +170,9 @@ def compile(auth):
 	i=0
 	while len(tweetData.tweetIDs)>0 and i<60:
 		i+=1
-		print ("{0} arrays of tweets left of length {1}\n".format(len(tweetData.tweetIDs),len(tweetData.tweetIDs[0])))
+		#print ("{0} arrays of tweets left of length {1}\n".format(len(tweetData.tweetIDs),len(tweetData.tweetIDs[0])))
 		if len(tweetData.tweetIDs[0])<100:
-			print("last\n")
+			#print("last\n")
 			last=True
 		try:
 			#curTime=time.localtime()
@@ -302,6 +204,14 @@ def compile(auth):
 
 if __name__=='__main__':
 
+	#variables:
+	tweetVal=0.1
+	favVal=0.75
+	rtVal=0.5
+	exp=True
+
+
+
 	with open('credentials.json') as credFile:
 		data=json.load(credFile)
 	auth=OAuthHandler(data["consumer_key"],data["consumer_secret"])
@@ -329,7 +239,7 @@ if __name__=='__main__':
 		clean=False
 		Status="debug"
 		print ("\n\nWARNING, YOU ARE IN DEBUG MODE, THIS ISN'T ACTUALLY RUNNING, IT WILL NOT BE POSTED TO TWITTER\n\n")
-	tweetData=Statistics(queryData["tags"],clean)
+	tweetData=Statistics(queryData["tags"], clean, tweetVal, favVal, rtVal, exp)
 	myStreamListener = StdOutListener()
 	myStream = Stream(auth, myStreamListener)
 	_thread.start_new_thread ( stream, (myStream,megatag) )
