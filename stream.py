@@ -24,7 +24,6 @@ from topic import Topic
 
 
 #override tweepy.StreamListener to add logic to on_status
-#This is a basic listener that just prints received tweets to stdout.
 class StdOutListener(StreamListener):
 
 
@@ -41,12 +40,6 @@ class StdOutListener(StreamListener):
 		print ("\n")
 
 
-# def parseData(tags):
-# 	global tweets
-# 	statistics=[]
-# 	for mainTag in tags:
-# 		statistics.append({})
-# 	while True:
 
 def analyze(auth,Status):
 	global tweetData
@@ -87,39 +80,10 @@ def analyze(auth,Status):
 			#compiling data from each topic
 
 			
-			##90% sure this is now covered in topic class
-
-			# for topic in tweetData.topics:
-			# 	try:
-			# 		#print ("topic {} has {} tweets starting with pop {}\n".format(topic,len(tweetData.stored_data[topic]),tweetData.popularityIndex[topic]))
-			# 		numTweets=0
-			# 		Tweeters=0
-			# 		totalRetweet=0
-			# 		totalFav=0
-			# 		topicPop=0
-			# 		for tweetStat in tweetData.stored_data[topic]:
-			# 			rt=tweetStat[0]
-			# 			fav=tweetStat[1]
-			# 			totalRetweet+=rt
-			# 			totalFav+=fav
-			# 			popPerTweet=1+fav*.05+rt*.1
-			# 			topicPop+=popPerTweet
-			# 		tweetData.popularityIndex[topic]+=topicPop
-			# 	except Exception as ex1:
-			# 		with open ("./twitter_errlog.txt","a") as errlog:
-			# 			errlog.write("{0} error of type {1} occured in mid analysis\n".format(ex1,ex1.__class__.__name__))
-			# 		print ("{} {}  error in mid analysis\n".format (ex1,ex1.__class__.__name__))
-			#print("#2\n")
-			# print (tweetData.popularityIndex)
-			# print("\n{}\n".format(popularityIndex))
-			#tweetData.popularityIndex=popularityIndex
+			
 
 			tweetData.export()
 			
-			#tweetData.lock.release()
-			#trace=go.Bar(x=tweetData.labels,y=popularityIndex)
-			#print (mainTopics)
-			#print (popularityIndex)
 			popularity=tweetData.getPop()
 			data = [go.Bar(x=tweetData.getTopicNames(),y=popularity,text=popularity,textposition='auto',)]
 			print ("#4\n")
@@ -175,18 +139,13 @@ def compile(auth):
 			#print("last\n")
 			last=True
 		try:
-			#curTime=time.localtime()
-			#elapsed=times[0]-curTime
-			#if elapsed.tm_hour>=1:
-				#print("time to lookup!")
-				print("tweet data is \n {} \n".format(tweetData.tweetIDs[0]))
-				dataList=api.statuses_lookup(tweetData.tweetIDs.pop(0))
-				#tweetData.times.pop(0)
-				for data in dataList:
-					jsonData=json.dumps(data._json)
-					tweetData.add(json.loads(jsonData))
-			#else:
-			#	time.sleep (120)
+			#print("time to lookup!")
+			print("tweet data is \n {} \n".format(tweetData.tweetIDs[0]))
+			dataList=api.statuses_lookup(tweetData.tweetIDs.pop(0))
+			#tweetData.times.pop(0)
+			for data in dataList:
+				jsonData=json.dumps(data._json)
+				tweetData.add(json.loads(jsonData))
 		except Exception as ex:
 			print ("{} error in compilation".format(ex))
 			with open ("./twitter_errlog.txt","a") as errlog:
@@ -205,10 +164,11 @@ def compile(auth):
 if __name__=='__main__':
 
 	#variables:
-	tweetVal=0.1
-	favVal=0.75
-	rtVal=0.5
+	tweetVal=1
+	favVal=0.5
+	rtVal=0.25
 	exp=True
+	deg=.85
 
 
 
@@ -239,7 +199,7 @@ if __name__=='__main__':
 		clean=False
 		Status="debug"
 		print ("\n\nWARNING, YOU ARE IN DEBUG MODE, THIS ISN'T ACTUALLY RUNNING, IT WILL NOT BE POSTED TO TWITTER\n\n")
-	tweetData=Statistics(queryData["tags"], clean, tweetVal, favVal, rtVal, exp)
+	tweetData=Statistics(queryData["tags"], clean, tweetVal, favVal, rtVal, exp, deg)
 	myStreamListener = StdOutListener()
 	myStream = Stream(auth, myStreamListener)
 	_thread.start_new_thread ( stream, (myStream,megatag) )

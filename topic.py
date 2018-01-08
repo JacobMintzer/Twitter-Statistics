@@ -20,11 +20,12 @@ import test
 
 class Topic:
 	
-	def __init__(self, topic, tags, tweetVal, favVal, rtVal, exp):
+	def __init__(self, topic, tags, tweetVal, favVal, rtVal, exp, deg):
 		self._tweetVal=tweetVal	#popularity per tweet to be added for all tweets
 		self._favVal=favVal 		#value for each favorite
 		self._rtVal=rtVal			#value for retweets
 		self._exp=exp 				#bool, if favVal/rtVal is multiplied or the exponent
+		self._deg=deg
 		self._topic=topic			#name of Topic
 		self._tags=tags				#list of tags associated with this topic
 		self._tweets=[]				#list of tweet data, not used atm, but might as well keep it for now
@@ -61,7 +62,7 @@ class Topic:
 
 	#returns total pop, and degrades old data
 	def getPop(self):
-		self._totalPop=self._totalPop**.75
+		self._totalPop=self._totalPop**self._deg
 		self._totalPop+=self._pop
 		self._pop=self._tweetVal
 		return self._totalPop

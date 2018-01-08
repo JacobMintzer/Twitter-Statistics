@@ -20,7 +20,7 @@ import test
 from topic import Topic
 class Statistics:
 
-	def __init__(self, tags, clean, tweetVal, favVal, rtVal, exp):
+	def __init__(self, tags, clean, tweetVal, favVal, rtVal, exp, deg):
 		#self.stored_data = {} # Array of dictionaries, key is tag, value is array of number of favs, RTs
 		#self.topics = {} #holds all the topic data structures
 		#self.lock=threading.Lock() #not currently being used
@@ -30,7 +30,7 @@ class Statistics:
 		self.topics={}
 		for tag in tags:
 			self.topicNames.append(tag[0])
-			self.topics[tag[0]]=(Topic(tag[0],tag, tweetVal, favVal, rtVal, exp))
+			self.topics[tag[0]]=(Topic(tag[0],tag, tweetVal, favVal, rtVal, exp, deg))
 			#self.stored_data[tag[0]]=[]
 			#print (tag)
 		
